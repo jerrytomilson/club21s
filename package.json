@@ -1,0 +1,17 @@
+{
+  "name": "club21s",
+  "version": "1.0.0",
+  "description": "Club21 static website with shop, cart, and checkout",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
