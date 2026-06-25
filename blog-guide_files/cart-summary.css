@@ -1,0 +1,119 @@
+
+
+.woocommerce-shipping-totals span.woocommerce-Price-amount.wdp-amount {
+    text-decoration: line-through;
+}
+
+.adp-choose-card-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border: 2px solid #00000014;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.adp-choose-product-discount-title {
+  display: flex;
+}
+
+.adp-choose-card-img {
+  max-height: 1.4rem;
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+.adp-choose-card {
+  position: relative;
+  border: 2px solid #00000014;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  transition: background-color 0.2s ease;
+}
+
+
+.adp-choose-card:hover {
+  border: 1px solid #1d1d1d;
+  background-color: #f8f8f8;
+}
+
+.adp-choose-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.adp-choose-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.adp-choose-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adp-choose-radio-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.adp-choose-radio-title::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #888;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+  top: 0;
+}
+
+.adp-choose-radio-title::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #888;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.adp-choose-card input[type="radio"]:checked + label .adp-choose-radio-title::before {
+  border-color: #666;
+}
+
+.adp-choose-card input[type="radio"]:checked + label .adp-choose-radio-title::after {
+  opacity: 1;
+  background-color: #666;
+}
+
+.adp-choose-card-title {
+  font-size: 1rem;
+}
+
+.adp-choose-card-price {
+  font-weight: 500;
+  color: #333;
+}
+
+.adp-choose-card-description {
+  display: flex;
+  font-size: 0.9rem;
+  color: #666;
+}
