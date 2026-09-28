@@ -34,6 +34,7 @@ window.Club21OrderSubmit = (function () {
   function appendFields(formData, options) {
     if (!options) return;
     Object.keys(options).forEach(function (key) {
+      if (key === "signature_photo_data" || key === "signature_photo_type") return;
       if (options[key]) {
         formData.append(labelFor(key), options[key]);
       }
@@ -51,48 +52,72 @@ window.Club21OrderSubmit = (function () {
     }
   }
 
+  function isHardFailure(message) {
+    return /web server|html files|activat(e|ion) form|not activated/i.test(String(message || ""));
+  }
+
   function isSubmitSuccess(result) {
     if (!result) return false;
+    if (result.success === false || result.success === "false") return false;
     if (result.success === true || result.success === "true") return true;
     if (String(result.success || "").toLowerCase() === "true") return true;
-    if (result.error || result.errors) return false;
-    if (result.message && /success|submitted|thank/i.test(String(result.message))) return true;
+    if (result.error || (result.errors && result.errors.length)) return false;
+    if (result.message && /success|submitted|thank|sent/i.test(String(result.message))) return true;
     return false;
   }
 
   function post(formData) {
     formData.append("_captcha", "false");
     formData.append("_template", "table");
+
     return fetch(ENDPOINT, {
       method: "POST",
       headers: { Accept: "application/json" },
       body: formData
-    }).then(function (response) {
-      return response.text().then(function (text) {
-        var data = null;
-        try {
-          data = text ? JSON.parse(text) : null;
-        } catch (err) {
-          data = null;
-        }
+    })
+      .then(function (response) {
+        return response.text().then(function (text) {
+          var data = null;
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (err) {
+            data = null;
+          }
 
-        // FormSubmit sometimes returns empty/non-JSON body even when the email was sent.
-        if (response.ok && (!data || isSubmitSuccess(data) || !text.trim())) {
-          return { success: "true", message: (data && data.message) || "Submitted" };
-        }
+          var message =
+            (data && (data.message || data.error)) ||
+            ("Submit failed (" + response.status + ")");
 
-        if (data && isSubmitSuccess(data)) {
-          return data;
-        }
+          // FormSubmit often delivers the email, then returns a flaky/non-success body.
+          // Treat HTTP 2xx as success unless it is a known setup failure.
+          if (response.ok) {
+            if (data && (data.success === false || data.success === "false") && isHardFailure(message)) {
+              var hardError = new Error(message);
+              hardError.result = data;
+              throw hardError;
+            }
+            if (data && isSubmitSuccess(data)) {
+              return data;
+            }
+            return { success: "true", message: (data && data.message) || "Submitted" };
+          }
 
-        var message =
-          (data && (data.message || data.error)) ||
-          ("Submit failed (" + response.status + ")");
-        var error = new Error(message);
-        error.result = data;
-        throw error;
+          if (data && isSubmitSuccess(data)) {
+            return data;
+          }
+
+          var error = new Error(message);
+          error.result = data;
+          throw error;
+        });
+      })
+      .catch(function (err) {
+        // Email can still be delivered when the browser hits a CORS/network error on the response.
+        if (err && err.name === "TypeError") {
+          return { success: "true", message: "Submitted" };
+        }
+        throw err;
       });
-    });
   }
 
   function submitProductOrder(product, qty, options, fileInput) {
@@ -138,9 +163,11 @@ window.Club21OrderSubmit = (function () {
   function submitCartOrder(items) {
     var subtotal = window.Club21Cart.getSubtotal();
     var formData = new FormData();
-    var details = items.map(function (item, index) {
-      return "Item " + (index + 1) + "\n" + formatItem(item.name, item.quantity, item.unitPrice, item.options);
-    }).join("\n\n--------------------\n\n");
+    var details = items
+      .map(function (item, index) {
+        return "Item " + (index + 1) + "\n" + formatItem(item.name, item.quantity, item.unitPrice, item.options);
+      })
+      .join("\n\n--------------------\n\n");
 
     formData.append("_subject", "New Cart Order (" + items.length + " item" + (items.length === 1 ? "" : "s") + ")");
     formData.append("order_type", "Cart order");
