@@ -1,6 +1,5 @@
 window.Club21OrderSubmit = (function () {
-  var EMAIL = "contact@scannableidus.com";
-  var ENDPOINT = "https://formsubmit.co/ajax/contact@scannableidus.com";
+  var ENDPOINT = "https://formsubmit.co/ajax/Sales@club21-id.com";
 
   function labelFor(name) {
     var field = window.Club21OrderFields.FIELDS.find(function (f) {
@@ -41,14 +40,58 @@ window.Club21OrderSubmit = (function () {
     });
   }
 
+  function appendContact(formData, options) {
+    if (!options) return;
+    if (options.email) {
+      formData.append("email", options.email);
+      formData.append("_replyto", options.email);
+    }
+    if (options.phone) {
+      formData.append("phone", options.phone);
+    }
+  }
+
+  function isSubmitSuccess(result) {
+    if (!result) return false;
+    if (result.success === true || result.success === "true") return true;
+    if (String(result.success || "").toLowerCase() === "true") return true;
+    if (result.error || result.errors) return false;
+    if (result.message && /success|submitted|thank/i.test(String(result.message))) return true;
+    return false;
+  }
+
   function post(formData) {
     formData.append("_captcha", "false");
+    formData.append("_template", "table");
     return fetch(ENDPOINT, {
       method: "POST",
       headers: { Accept: "application/json" },
       body: formData
     }).then(function (response) {
-      return response.json();
+      return response.text().then(function (text) {
+        var data = null;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (err) {
+          data = null;
+        }
+
+        // FormSubmit sometimes returns empty/non-JSON body even when the email was sent.
+        if (response.ok && (!data || isSubmitSuccess(data) || !text.trim())) {
+          return { success: "true", message: (data && data.message) || "Submitted" };
+        }
+
+        if (data && isSubmitSuccess(data)) {
+          return data;
+        }
+
+        var message =
+          (data && (data.message || data.error)) ||
+          ("Submit failed (" + response.status + ")");
+        var error = new Error(message);
+        error.result = data;
+        throw error;
+      });
     });
   }
 
@@ -60,6 +103,7 @@ window.Club21OrderSubmit = (function () {
     formData.append("quantity", String(qty));
     formData.append("unit_price", "$" + product.price.toFixed(2));
     formData.append("order_details", formatItem(product.name, qty, product.price, options));
+    appendContact(formData, options);
     appendFields(formData, options);
 
     if (fileInput && fileInput.files && fileInput.files[0]) {
@@ -82,6 +126,15 @@ window.Club21OrderSubmit = (function () {
     return new File([bytes], fileName || "signature-photo.jpg", { type: mime });
   }
 
+  function firstContact(items) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].options && (items[i].options.email || items[i].options.phone)) {
+        return items[i].options;
+      }
+    }
+    return null;
+  }
+
   function submitCartOrder(items) {
     var subtotal = window.Club21Cart.getSubtotal();
     var formData = new FormData();
@@ -94,6 +147,7 @@ window.Club21OrderSubmit = (function () {
     formData.append("item_count", String(items.length));
     formData.append("order_total", "$" + subtotal.toFixed(2));
     formData.append("order_details", details);
+    appendContact(formData, firstContact(items));
 
     items.forEach(function (item, index) {
       var prefix = "item_" + (index + 1) + "_";
@@ -124,6 +178,7 @@ window.Club21OrderSubmit = (function () {
 
   return {
     submitProductOrder: submitProductOrder,
-    submitCartOrder: submitCartOrder
+    submitCartOrder: submitCartOrder,
+    isSubmitSuccess: isSubmitSuccess
   };
 })();

@@ -1,11 +1,13 @@
 window.Club21OrderFields = (function () {
   var REQUIRED = [
-    "first_name", "last_name", "gender", "eye_color", "hair_color",
+    "email", "phone", "first_name", "last_name", "gender", "eye_color", "hair_color",
     "height", "weight", "birthday", "street_address", "city", "zip_code", "issue_date"
   ];
 
   var FIELDS = [
     { type: "file", name: "signature_photo", label: "Signature & Photo", accept: "image/*" },
+    { type: "email", name: "email", label: "Email", placeholder: "you@example.com", required: true },
+    { type: "tel", name: "phone", label: "Phone Number", placeholder: "Phone Number", required: true },
     { type: "text", name: "first_name", label: "First Name", placeholder: "First Name", required: true },
     { type: "text", name: "middle_name", label: "Middle Name", placeholder: "Middle Name" },
     { type: "text", name: "last_name", label: "Last Name", placeholder: "Last Name", required: true },
@@ -67,13 +69,19 @@ window.Club21OrderFields = (function () {
       );
     }
 
-    var inputType = field.type === "date" ? "date" : "text";
+    var inputType = "text";
+    if (field.type === "date") inputType = "date";
+    else if (field.type === "email") inputType = "email";
+    else if (field.type === "tel") inputType = "tel";
+
     return (
       '<div class="wcpa_field_wrap">' +
       '<label for="' + id + '" class="wcpa_field_label">' + field.label + req + "</label>" +
       '<input type="' + inputType + '" class="wcpa_field" id="' + id + '" name="' + field.name + '"' +
       ' value="' + escapeAttr(value) + '"' +
       (field.placeholder ? ' placeholder="' + escapeAttr(field.placeholder) + '"' : "") +
+      (field.type === "email" ? ' autocomplete="email"' : "") +
+      (field.type === "tel" ? ' autocomplete="tel"' : "") +
       reqAttr + ">" +
       "</div>"
     );
@@ -131,6 +139,8 @@ window.Club21OrderFields = (function () {
     if (options.first_name || options.last_name) {
       parts.push([options.first_name, options.last_name].filter(Boolean).join(" "));
     }
+    if (options.email) parts.push(options.email);
+    if (options.phone) parts.push(options.phone);
     if (options.city) parts.push(options.city);
     if (options.signature_photo_name) parts.push("Photo: " + options.signature_photo_name);
     return parts.join(" · ");

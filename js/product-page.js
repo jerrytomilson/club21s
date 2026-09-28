@@ -269,20 +269,16 @@
         setButtonLoading(placeBtn, true, "Place order");
 
         window.Club21OrderSubmit.submitProductOrder(product, qty, options, fileInput)
-          .then(function (result) {
-            if (result && result.success === "true") {
-              showOrderNotice("Thank you! Your order has been sent. We will contact you shortly.", "success");
-              form.reset();
-              var dropZone = form.querySelector(".wcpa_file_drop p");
-              if (dropZone) {
-                dropZone.innerHTML = 'Drag &amp; Drop Files Here or <span class="dnd-upload-browse">Browse Files</span>';
-              }
-            } else {
-              showOrderNotice("Could not send your order. Please try again or email contact@scannableidus.com directly.", "error");
+          .then(function () {
+            showOrderNotice("Thank you! Your order has been sent. We will contact you shortly.", "success");
+            form.reset();
+            var dropZone = form.querySelector(".wcpa_file_drop p");
+            if (dropZone) {
+              dropZone.innerHTML = 'Drag &amp; Drop Files Here or <span class="dnd-upload-browse">Browse Files</span>';
             }
           })
           .catch(function () {
-            showOrderNotice("Could not send your order. Please check your connection and try again.", "error");
+            showOrderNotice("Could not send your order. Please try again or email Sales@club21-id.com directly.", "error");
           })
           .finally(function () {
             setButtonLoading(placeBtn, false, "Place order");

@@ -122,17 +122,13 @@
       btn.style.pointerEvents = "none";
 
       window.Club21OrderSubmit.submitCartOrder(items)
-        .then(function (result) {
-          if (result && result.success === "true") {
-            window.Club21Cart.clear();
-            showNotice("Thank you! Your order has been sent. We will contact you shortly.");
-            render();
-          } else {
-            showNotice("Could not send your order. Please try again or email contact@scannableidus.com directly.", "error");
-          }
+        .then(function () {
+          window.Club21Cart.clear();
+          showNotice("Thank you! Your order has been sent. We will contact you shortly.");
+          render();
         })
         .catch(function () {
-          showNotice("Could not send your order. Please check your connection and try again.", "error");
+          showNotice("Could not send your order. Please try again or email Sales@club21-id.com directly.", "error");
         })
         .finally(function () {
           btn.textContent = "Place order";
